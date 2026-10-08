@@ -28,7 +28,7 @@
                 <span id="user-role" class="text-xs text-gray-500">Клиент</span>
             </div>
         </div>
-        <!-- Кнопка админ-панели скрыта для всех, кроме ID из ADMIN_IDS -->
+        <!-- Кнопка админ-панели -->
         <div id="admin-toggle-container" class="hide">
             <button id="btn-switch-mode" onclick="toggleAdminMode()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition">
                 Админ-панель
@@ -109,7 +109,7 @@
     <!-- СКРИПТЫ И ЛОГИКА -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, addDoc, query, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDY6HvsXKCeqTZSlMHu_qTFt67uZfrBHhQ",
@@ -124,42 +124,38 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Telegram WebApp инициализация
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Данные пользователя из Telegram
         let currentUser = {
             id: tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "guest_" + Math.floor(Math.random() * 10000),
             name: tg.initDataUnsafe?.user?.first_name || "Гость",
             username: tg.initDataUnsafe?.user?.username || "no_username"
         };
 
-        // Список разрешенных Telegram ID администраторов (твой ID добавлен)
+        console.log("Текущий пользователь ID:", currentUser.id);
+
         const ADMIN_IDS = ["6536910883", "715595769956"]; 
         let isAdmin = ADMIN_IDS.includes(currentUser.id);
 
-        // Состояние интерфейса
         let activeRole = 'client';
         let selectedUserId = null;
         let clientUnsubscribe = null;
+        let adminChatsUnsubscribe = null;
         let adminMessagesUnsubscribe = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('user-name').innerText = currentUser.name;
             document.getElementById('user-avatar').innerText = currentUser.name.charAt(0).toUpperCase();
 
-            // Если текущий ID в списке ADMIN_IDS — показываем кнопку админки
             if (isAdmin) {
                 document.getElementById('admin-toggle-container').classList.remove('hide');
-                loadAdminChats();
+                listenAdminChats();
             }
 
-            // Запуск прослушивания чата текущего пользователя
             listenClientMessages();
         });
 
-        // Переключение вкладок у клиента
         window.switchClientTab = function(tab) {
             const chatTab = document.getElementById('client-tab-chat');
             const infoTab = document.getElementById('client-tab-info');
@@ -179,7 +175,6 @@
             }
         }
 
-        // Переключение режимов Клиент / Админ
         window.toggleAdminMode = function() {
             if (!isAdmin) return;
             const clientView = document.getElementById('client-view');
@@ -193,7 +188,6 @@
                 adminView.classList.remove('hide');
                 btnSwitch.innerText = "Клиентский вид";
                 userRoleText.innerText = "Администратор";
-                loadAdminChats();
             } else {
                 activeRole = 'client';
                 adminView.classList.add('hide');
@@ -203,13 +197,21 @@
             }
         }
 
-        // Отправка сообщения клиентом
+        // Отправка сообщения клиентом с гарантированным созданием документа чата
         window.sendClientMessage = async function() {
             const input = document.getElementById('client-message-input');
             const text = input.value.trim();
             if (!text) return;
 
             try {
+                // 1. Создаем или обновляем сам чат в коллекции chats, чтобы админка его видела
+                await setDoc(doc(db, "chats", currentUser.id), {
+                    userId: currentUser.id,
+                    userName: currentUser.name,
+                    lastUpdated: serverTimestamp()
+                }, { merge: true });
+
+                // 2. Добавляем сообщение в подколлекцию messages
                 await addDoc(collection(db, "chats", currentUser.id, "messages"), {
                     senderId: currentUser.id,
                     senderName: currentUser.name,
@@ -217,13 +219,16 @@
                     timestamp: serverTimestamp(),
                     isAdmin: false
                 });
+
                 input.value = '';
+                console.log("Сообщение клиента успешно отправлено и чат зарегистрирован");
             } catch (e) {
-                console.error("Ошибка отправки:", e);
+                console.error("Ошибка отправки сообщения:", e);
+                alert("Ошибка отправки: " + e.message);
             }
         }
 
-        // Рендер сообщений клиента в реальном времени
+        // Рендер сообщений клиента
         function listenClientMessages() {
             const messagesRef = collection(db, "chats", currentUser.id, "messages");
             const q = query(messagesRef, orderBy("timestamp", "asc"));
@@ -242,7 +247,7 @@
                     html += `
                         <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
                             <div class="max-w-[80%] rounded-2xl px-3 py-2 text-xs ${isMe ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-gray-100 text-gray-800 rounded-bl-none'}">
-                                ${escapeHtml(data.text)}
+                                ${escapeHtml(data.text || '')}
                             </div>
                             <span class="text-[10px] text-gray-400 mt-0.5 px-1">${data.senderName || ''}</span>
                         </div>
@@ -250,38 +255,46 @@
                 });
                 list.innerHTML = html;
                 list.scrollTop = list.scrollHeight;
+            }, (error) => {
+                console.error("Ошибка слушателя сообщений клиента:", error);
             });
         }
 
-        // Загрузка всех чатов для администратора
-        async function loadAdminChats() {
+        // Автообновление списка всех чатов для администратора
+        function listenAdminChats() {
             if (!isAdmin) return;
             const chatsRef = collection(db, "chats");
-            const snapshot = await getDocs(chatsRef);
-            const listContainer = document.getElementById('admin-chats-list');
 
-            if (snapshot.empty) {
-                listContainer.innerHTML = `<div class="p-3 text-xs text-gray-400 text-center">Нет активных чатов</div>`;
-                return;
-            }
+            adminChatsUnsubscribe = onSnapshot(chatsRef, (snapshot) => {
+                const listContainer = document.getElementById('admin-chats-list');
+                if (snapshot.empty) {
+                    listContainer.innerHTML = `<div class="p-3 text-xs text-gray-400 text-center">Нет активных чатов</div>`;
+                    return;
+                }
 
-            let html = '';
-            snapshot.forEach((docSnap) => {
-                const userId = docSnap.id;
-                html += `
-                    <div onclick="selectChat('${userId}')" class="p-3 hover:bg-gray-50 cursor-pointer transition border-b border-gray-50">
-                        <div class="font-bold text-xs text-gray-800">ID: ${userId}</div>
-                        <div class="text-[10px] text-gray-400 truncate">Открыть диалог</div>
-                    </div>
-                `;
+                let html = '';
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const userId = docSnap.id;
+                    const displayName = data.userName || `ID: ${userId}`;
+                    const isActive = selectedUserId === userId ? 'bg-indigo-50' : '';
+                    html += `
+                        <div onclick="selectChat('${userId}')" class="p-3 hover:bg-gray-50 cursor-pointer transition border-b border-gray-50 ${isActive}">
+                            <div class="font-bold text-xs text-gray-800">${escapeHtml(displayName)}</div>
+                            <div class="text-[10px] text-gray-400 truncate">ID: ${userId}</div>
+                        </div>
+                    `;
+                });
+                listContainer.innerHTML = html;
+            }, (error) => {
+                console.error("Ошибка загрузки списка чатов админа:", error);
             });
-            listContainer.innerHTML = html;
         }
 
         // Выбор конкретного чата админом
         window.selectChat = function(userId) {
             selectedUserId = userId;
-            document.getElementById('admin-chat-header').innerText = `Чат с пользователем ID: ${userId}`;
+            document.getElementById('admin-chat-header').innerText = `Чат с пользователем: ${userId}`;
             document.getElementById('admin-input-container').classList.remove('hide');
 
             if (adminMessagesUnsubscribe) {
@@ -300,7 +313,7 @@
                     html += `
                         <div class="flex flex-col ${isMyAdminMsg ? 'items-end' : 'items-start'}">
                             <div class="max-w-[80%] rounded-2xl px-3 py-2 text-xs ${isMyAdminMsg ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-white border border-gray-100 text-gray-800 rounded-bl-none'}">
-                                ${escapeHtml(data.text)}
+                                ${escapeHtml(data.text || '')}
                             </div>
                             <span class="text-[10px] text-gray-400 mt-0.5 px-1">${data.senderName || (isMyAdminMsg ? 'Админ' : 'Клиент')}</span>
                         </div>
@@ -329,10 +342,12 @@
                 input.value = '';
             } catch (e) {
                 console.error("Ошибка отправки админом:", e);
+                alert("Ошибка отправки: " + e.message);
             }
         }
 
         function escapeHtml(text) {
+            if (!text) return '';
             const map = {
                 '&': '&amp;',
                 '<': '&lt;',
