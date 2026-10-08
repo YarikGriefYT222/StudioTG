@@ -28,7 +28,7 @@
                 <span id="user-role" class="text-xs text-gray-500">Клиент</span>
             </div>
         </div>
-        <!-- Кнопка админ-панели скрыта по умолчанию и показывается только админам -->
+        <!-- Кнопка админ-панели скрыта для всех, кроме ID из ADMIN_IDS -->
         <div id="admin-toggle-container" class="hide">
             <button id="btn-switch-mode" onclick="toggleAdminMode()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition">
                 Админ-панель
@@ -135,8 +135,8 @@
             username: tg.initDataUnsafe?.user?.username || "no_username"
         };
 
-        // Впишите сюда разрешенные Telegram ID администраторов
-        const ADMIN_IDS = ["715595769956", "987654321"]; 
+        // Список разрешенных Telegram ID администраторов (твой ID добавлен)
+        const ADMIN_IDS = ["6536910883", "715595769956"]; 
         let isAdmin = ADMIN_IDS.includes(currentUser.id);
 
         // Состояние интерфейса
@@ -149,7 +149,7 @@
             document.getElementById('user-name').innerText = currentUser.name;
             document.getElementById('user-avatar').innerText = currentUser.name.charAt(0).toUpperCase();
 
-            // Если текущий ID есть в списке ADMIN_IDS — показываем кнопку админки
+            // Если текущий ID в списке ADMIN_IDS — показываем кнопку админки
             if (isAdmin) {
                 document.getElementById('admin-toggle-container').classList.remove('hide');
                 loadAdminChats();
@@ -179,7 +179,7 @@
             }
         }
 
-        // Переключение режимов Клиент / Админ (доступно только админам)
+        // Переключение режимов Клиент / Админ
         window.toggleAdminMode = function() {
             if (!isAdmin) return;
             const clientView = document.getElementById('client-view');
