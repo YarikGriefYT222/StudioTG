@@ -42,9 +42,10 @@
         <!-- ================= СТРАНИЦА КЛИЕНТА ================= -->
         <div id="client-view" class="flex-1 flex flex-col p-4 space-y-4">
             
-            <!-- Переключение вкладок: Чат / Информация -->
-            <div class="flex bg-gray-200 p-1 rounded-xl shrink-0">
+            <!-- Переключение вкладок: Чат / Услуги / Информация -->
+            <div class="flex bg-gray-200 p-1 rounded-xl shrink-0 gap-1">
                 <button onclick="switchClientTab('chat')" id="tab-btn-chat" class="flex-1 py-2 text-xs font-semibold rounded-lg bg-white shadow text-gray-800 transition">Чат</button>
+                <button onclick="switchClientTab('services')" id="tab-btn-services" class="flex-1 py-2 text-xs font-semibold rounded-lg text-gray-600 transition">Услуги</button>
                 <button onclick="switchClientTab('info')" id="tab-btn-info" class="flex-1 py-2 text-xs font-semibold rounded-lg text-gray-600 transition">Информация</button>
             </div>
 
@@ -64,11 +65,68 @@
                 </div>
             </div>
 
+            <!-- Вкладка: Услуги -->
+            <div id="client-tab-services" class="flex-1 flex flex-col hide bg-white rounded-2xl shadow-sm border border-gray-100 p-4 overflow-y-auto space-y-3">
+                <h2 class="font-bold text-base text-gray-800">Наши услуги</h2>
+                <p class="text-xs text-gray-600">Выберите интересующую услугу, чтобы обсудить детали с продавцом в чате:</p>
+                
+                <div class="grid grid-cols-1 gap-2.5 mt-2">
+                    <!-- Услуга 1 -->
+                    <div class="p-3 bg-gray-50 border border-gray-100 rounded-xl flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-xs text-gray-800">Монтаж</h3>
+                            <p class="text-[10px] text-gray-500">Профессиональный видеомонтаж вашего материала</p>
+                        </div>
+                        <button onclick="orderService('Монтаж')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-3 py-1.5 rounded-lg transition font-medium">Заказать</button>
+                    </div>
+                    <!-- Услуга 2 -->
+                    <div class="p-3 bg-gray-50 border border-gray-100 rounded-xl flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-xs text-gray-800">Начало (Интро/Аутро)</h3>
+                            <p class="text-[10px] text-gray-500">Яркие заставки для ваших видеороликов</p>
+                        </div>
+                        <button onclick="orderService('Начало')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-3 py-1.5 rounded-lg transition font-medium">Заказать</button>
+                    </div>
+                    <!-- Услуга 3 -->
+                    <div class="p-3 bg-gray-50 border border-gray-100 rounded-xl flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-xs text-gray-800">Превью</h3>
+                            <p class="text-[10px] text-gray-500">Дизайнерские обложки для привлечения внимания</p>
+                        </div>
+                        <button onclick="orderService('Превью')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-3 py-1.5 rounded-lg transition font-medium">Заказать</button>
+                    </div>
+                    <!-- Услуга 4 -->
+                    <div class="p-3 bg-gray-50 border border-gray-100 rounded-xl flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-xs text-gray-800">Сценарий</h3>
+                            <p class="text-[10px] text-gray-500">Проработка структуры и текста для видео</p>
+                        </div>
+                        <button onclick="orderService('Сценарий')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-3 py-1.5 rounded-lg transition font-medium">Заказать</button>
+                    </div>
+                    <!-- Услуга 5 -->
+                    <div class="p-3 bg-gray-50 border border-gray-100 rounded-xl flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-xs text-gray-800">Спонсирование</h3>
+                            <p class="text-[10px] text-gray-500">Настройка и поддержка спонсорства</p>
+                        </div>
+                        <button onclick="orderService('Спонсирование')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-3 py-1.5 rounded-lg transition font-medium">Заказать</button>
+                    </div>
+                    <!-- Услуга 6 -->
+                    <div class="p-3 bg-gray-50 border border-gray-100 rounded-xl flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-xs text-gray-800">Шапки-авы</h3>
+                            <p class="text-[10px] text-gray-500">Оформление профилей и каналов</p>
+                        </div>
+                        <button onclick="orderService('Шапки-авы')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-3 py-1.5 rounded-lg transition font-medium">Заказать</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Вкладка: Информация -->
             <div id="client-tab-info" class="flex-1 flex flex-col hide bg-white rounded-2xl shadow-sm border border-gray-100 p-4 overflow-y-auto space-y-3">
                 <h2 class="font-bold text-base text-gray-800">О сервисе</h2>
                 <p class="text-xs text-gray-600 leading-relaxed">
-                    Добро пожаловать в нашу студию! Здесь вы можете напрямую связаться с продавцом, задать любые вопросы и получить помощь.
+                    Добро пожаловать в нашу студию! Здесь вы можете напрямую связаться с продавцом, выбрать нужную услугу и получить качественную помощь.
                 </p>
                 <div class="border-t border-gray-100 pt-3">
                     <h3 class="font-bold text-xs text-gray-800 mb-1">Режим работы</h3>
@@ -130,7 +188,7 @@
         let currentUser = {
             id: tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "guest_" + Math.floor(Math.random() * 10000),
             name: tg.initDataUnsafe?.user?.first_name || "Гость",
-            username: tg.initDataUnsafe?.user?.username || "no_username"
+            username: tg.initDataUnsafe?.user?.username ? `@${tg.initDataUnsafe.user.username}` : "нет username"
         };
 
         console.log("Текущий пользователь ID:", currentUser.id);
@@ -156,23 +214,47 @@
             listenClientMessages();
         });
 
+        // Переключение вкладок клиента
         window.switchClientTab = function(tab) {
             const chatTab = document.getElementById('client-tab-chat');
+            const servicesTab = document.getElementById('client-tab-services');
             const infoTab = document.getElementById('client-tab-info');
+            
             const btnChat = document.getElementById('tab-btn-chat');
+            const btnServices = document.getElementById('tab-btn-services');
             const btnInfo = document.getElementById('tab-btn-info');
+
+            // Сбрасываем стили всех кнопок
+            btnChat.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-gray-600 transition";
+            btnServices.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-gray-600 transition";
+            btnInfo.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-gray-600 transition";
+
+            chatTab.classList.add('hide');
+            servicesTab.classList.add('hide');
+            infoTab.classList.add('hide');
 
             if (tab === 'chat') {
                 chatTab.classList.remove('hide');
-                infoTab.classList.add('hide');
                 btnChat.className = "flex-1 py-2 text-xs font-semibold rounded-lg bg-white shadow text-gray-800 transition";
-                btnInfo.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-gray-600 transition";
+            } else if (tab === 'services') {
+                servicesTab.classList.remove('hide');
+                btnServices.className = "flex-1 py-2 text-xs font-semibold rounded-lg bg-white shadow text-gray-800 transition";
             } else {
-                chatTab.classList.add('hide');
                 infoTab.classList.remove('hide');
                 btnInfo.className = "flex-1 py-2 text-xs font-semibold rounded-lg bg-white shadow text-gray-800 transition";
-                btnChat.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-gray-600 transition";
             }
+        }
+
+        // Быстрый заказ услуги (автоматически отправляет сообщение в чат)
+        window.orderService = async function(serviceName) {
+            const inputField = document.getElementById('client-message-input');
+            inputField.value = `Здравствуйте! Меня интересует услуга: ${serviceName}`;
+            
+            // Переключаемся на вкладку чата
+            switchClientTab('chat');
+            
+            // Автоматически отправляем
+            await window.sendClientMessage();
         }
 
         window.toggleAdminMode = function() {
@@ -197,21 +279,20 @@
             }
         }
 
-        // Отправка сообщения клиентом с гарантированным созданием документа чата
+        // Отправка сообщения клиентом
         window.sendClientMessage = async function() {
             const input = document.getElementById('client-message-input');
             const text = input.value.trim();
             if (!text) return;
 
             try {
-                // 1. Создаем или обновляем сам чат в коллекции chats, чтобы админка его видела
                 await setDoc(doc(db, "chats", currentUser.id), {
                     userId: currentUser.id,
                     userName: currentUser.name,
+                    userUsername: currentUser.username,
                     lastUpdated: serverTimestamp()
                 }, { merge: true });
 
-                // 2. Добавляем сообщение в подколлекцию messages
                 await addDoc(collection(db, "chats", currentUser.id, "messages"), {
                     senderId: currentUser.id,
                     senderName: currentUser.name,
@@ -221,7 +302,6 @@
                 });
 
                 input.value = '';
-                console.log("Сообщение клиента успешно отправлено и чат зарегистрирован");
             } catch (e) {
                 console.error("Ошибка отправки сообщения:", e);
                 alert("Ошибка отправки: " + e.message);
@@ -260,7 +340,7 @@
             });
         }
 
-        // Автообновление списка всех чатов для администратора
+        // Автообновление списка всех чатов для администратора (с выводом username)
         function listenAdminChats() {
             if (!isAdmin) return;
             const chatsRef = collection(db, "chats");
@@ -277,10 +357,13 @@
                     const data = docSnap.data();
                     const userId = docSnap.id;
                     const displayName = data.userName || `ID: ${userId}`;
+                    const displayUsername = data.userUsername ? data.userUsername : "нет username";
                     const isActive = selectedUserId === userId ? 'bg-indigo-50' : '';
+                    
                     html += `
                         <div onclick="selectChat('${userId}')" class="p-3 hover:bg-gray-50 cursor-pointer transition border-b border-gray-50 ${isActive}">
                             <div class="font-bold text-xs text-gray-800">${escapeHtml(displayName)}</div>
+                            <div class="text-[11px] font-medium text-indigo-600">${escapeHtml(displayUsername)}</div>
                             <div class="text-[10px] text-gray-400 truncate">ID: ${userId}</div>
                         </div>
                     `;
@@ -294,7 +377,7 @@
         // Выбор конкретного чата админом
         window.selectChat = function(userId) {
             selectedUserId = userId;
-            document.getElementById('admin-chat-header').innerText = `Чат с пользователем: ${userId}`;
+            document.getElementById('admin-chat-header').innerText = `Чат с пользователем ID: ${userId}`;
             document.getElementById('admin-input-container').classList.remove('hide');
 
             if (adminMessagesUnsubscribe) {
